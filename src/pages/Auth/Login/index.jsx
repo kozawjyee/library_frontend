@@ -34,7 +34,7 @@ function Login() {
         return showError({
           code: 0,
           title: "Permission Denied",
-          message: "Only admins can login here",
+          message: "Only users can login here",
         });
       })
       .then((err) => {

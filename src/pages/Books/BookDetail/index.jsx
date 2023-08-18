@@ -23,7 +23,6 @@ import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveIcon from "@mui/icons-material/Remove";
-import Books from "..";
 import { UserContext } from "../../../context/UserContext";
 import { createBorrow } from "../../../services/borrowservice";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
@@ -41,7 +40,6 @@ function BookDetail() {
   const navigate = useNavigate();
 
   const isAdmin = user.user_role === "librarian" ? true : false;
-  console.log(isAdmin);
 
   const loadBook = async () => {
     setLoading(true);
@@ -80,7 +78,6 @@ function BookDetail() {
     const isIncludeCate = book.book_categories.some(
       (value) => value._id === cate._id
     );
-    console.log(isIncludeCate);
     if (!isIncludeCate) {
       const newCateList = book.book_categories;
       newCateList.push(cate);
@@ -270,7 +267,7 @@ function BookDetail() {
                         type="text"
                         value={book.author}
                         onChange={(e) =>
-                          setBook({ ...Books, author: e.target.value })
+                          setBook({ ...book, author: e.target.value })
                         }
                       />
                     </div>

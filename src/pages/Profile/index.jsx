@@ -23,6 +23,7 @@ function Profile() {
   const [isEdit, setIsEdit] = useState(false);
   const { showError } = useContext(ErrorContext);
   const [noti, setNoti] = useState({ show: false, message: "" });
+  // eslint-disable-next-line no-unused-vars
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
