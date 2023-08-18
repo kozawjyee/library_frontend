@@ -36,7 +36,8 @@ function AdminLogin() {
           message: "Only admins can login here",
         });
       })
-      .then((err) => {
+      .catch((err) => {
+        console.log("work");
         showError(errorProvier(err));
         setLoading(false);
       });
