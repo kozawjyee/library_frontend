@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*{
+  font-family: roboto;
+}
+
+body{
+  background-color: #fff6f6;
+}
+
+@layer base{
+ :root{
+    --color-primary: #435160;
+    --color-secondary: #34BAB5;
+ }
+}

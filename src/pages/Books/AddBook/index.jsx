@@ -1,0 +1,293 @@
+import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  createBook,
+  getCategories,
+  uploadBookImage,
+} from "../../../services/bookservice";
+import { ErrorContext } from "../../../context/ErrorContext";
+import { errorProvier } from "../../../util/errorProvider";
+import {
+  Backdrop,
+  Button,
+  Card,
+  CircularProgress,
+  IconButton,
+  List,
+  ListItem,
+  Snackbar,
+} from "@mui/material";
+import dayjs from "dayjs";
+import { DatePicker } from "@mui/x-date-pickers";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import RemoveIcon from "@mui/icons-material/Remove";
+import defaultImg from "../../../assets/images/bg2.jpg";
+
+function AddBook() {
+  const { showError } = useContext(ErrorContext);
+  const [loading, setLoading] = useState(false);
+  const defaultValue = {
+    image: "",
+    book_name: "",
+    author: "",
+    published_date: "",
+    is_available: true,
+    book_categories: [],
+    avialable_borrow_day: 5,
+  };
+  const [book, setBook] = useState(defaultValue);
+  const [cateList, setCateList] = useState([]);
+  const [showCate, setShowCate] = useState(false);
+  const [noti, setNoti] = useState({ show: false, message: "" });
+  const navigate = useNavigate();
+
+  const loadBook = async () => {
+    setLoading(true);
+
+    await getCategories()
+      .then((resp) => {
+        console.log("cate", resp.data.data);
+        setCateList(resp.data.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        showError(errorProvier(err));
+        setLoading(false);
+      });
+  };
+
+  const categoryRemove = (cat) => {
+    // console.log(cat);
+    const newCategory = book.book_categories.filter(
+      (value) => value._id !== cat._id
+    );
+    setBook({ ...book, book_categories: newCategory });
+  };
+
+  const addCategory = (cate) => {
+    const isIncludeCate = book.book_categories.some(
+      (value) => value._id === cate._id
+    );
+    console.log(isIncludeCate);
+    if (!isIncludeCate) {
+      const newCateList = book.book_categories;
+      newCateList.push(cate);
+      setBook({ ...book, book_categories: newCateList });
+    }
+  };
+
+  const submitBook = async () => {
+    setLoading(true);
+    const data = {
+      ...book,
+      book_categories: book.book_categories.map((value) => value._id),
+    };
+    await createBook(data)
+      .then(() => {
+        setLoading(false);
+        navigate("/books");
+      })
+      .catch((err) => {
+        console.log(err);
+        showError(errorProvier(err));
+        setLoading(false);
+      });
+  };
+
+  const onFileChange = async (e) => {
+    console.log(e.target.files[0]);
+    const data = new FormData();
+    data.append("image", e.target.files[0], e.target.files[0].name);
+    await uploadBookImage(data)
+      .then((resp) => {
+        console.log(resp.data);
+        setBook({ ...book, image: resp.data.src });
+      })
+      .catch((err) => {
+        console.log(err);
+        showError(errorProvier(err));
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadBook();
+  }, []);
+  return (
+    <>
+      <Snackbar
+        open={noti.show}
+        autoHideDuration={6000}
+        onClose={() => setNoti({ ...noti, show: false })}
+        message={noti.message}
+      />
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>{" "}
+      {book && (
+        <div className="px-5 py-5 flex flex-col items-center">
+          <div className="">
+            <p className="text-2xl font-bold text-primary my-5">
+              {book.book_name}
+            </p>
+          </div>
+          <div className="tablet:flex laptop:space-x-10 space-y-5 tablet:space-y-0">
+            <img
+              className="w-full tablet:w-[300px] laptop:w-[400px] desktop:w-[500px]"
+              alt={book.book_name}
+              src={
+                book.image
+                  ? `${import.meta.env.VITE_IMAGE_HOST}${book.image}`
+                  : defaultImg
+              }
+            />
+            <div>
+              <Card sx={{ maxWidth: 500 }}>
+                <List>
+                  <ListItem>
+                    <div className="w-full flex items-center justify-between">
+                      <button
+                        onClick={() =>
+                          setBook({ ...book, is_available: !book.is_available })
+                        }
+                        className={`${
+                          book.is_available ? "bg-green-500" : "bg-red-500"
+                        } text-white px-2 py-1 rounded-full shadow-md`}
+                      >
+                        {book.is_available ? "available" : "unavailable"}
+                      </button>
+                    </div>
+                  </ListItem>
+                  <ListItem>
+                    <div className="grid grid-cols-2 w-full">
+                      <label className="self-center"> Book Name : </label>
+                      <input
+                        className="w-full py-2 px-2"
+                        type="text"
+                        value={book.book_name}
+                        onChange={(e) =>
+                          setBook({ ...book, book_name: e.target.value })
+                        }
+                      />
+                    </div>
+                  </ListItem>
+
+                  <ListItem>
+                    <div className="grid grid-cols-2 w-full">
+                      <label className="self-center"> Categories : </label>
+                      <div className="flex">
+                        {book.book_categories.length > 0 &&
+                          book.book_categories.map((cat) => (
+                            <div
+                              className="mr-2 bg-blue-500 text-white px-2 shadow-md text-sm py-1 rounded-full relative flex items-center"
+                              key={cat._id}
+                            >
+                              <p>{cat.name}</p>
+
+                              <button
+                                onClick={() => categoryRemove(cat)}
+                                className="absolute right-[-5px] top-[-10px] rounded-full bg-red-600"
+                              >
+                                <RemoveIcon />
+                              </button>
+                            </div>
+                          ))}
+
+                        <div className="relative z-10">
+                          <IconButton
+                            onClick={() => setShowCate((prev) => !prev)}
+                          >
+                            <AddCircleIcon />
+                          </IconButton>
+                          {showCate && (
+                            <div className="absolute flex flex-col bg-white overflow-scroll shadow-md h-[200px]">
+                              {cateList.map((value) => (
+                                <button
+                                  onClick={() => addCategory(value)}
+                                  className="border-b border-x py-1 px-2"
+                                  key={value._id}
+                                >
+                                  {value.name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </ListItem>
+                  <ListItem>
+                    <div className="grid grid-cols-2 w-full">
+                      <label className="self-center"> Author : </label>
+                      <input
+                        className="w-full py-2 px-2"
+                        type="text"
+                        value={book.author}
+                        onChange={(e) =>
+                          setBook({ ...book, author: e.target.value })
+                        }
+                      />
+                    </div>
+                  </ListItem>
+                  <ListItem>
+                    <div className="grid grid-cols-2 w-full">
+                      <label className="self-center"> Published Date : </label>
+                      <DatePicker
+                        onChange={(e) =>
+                          setBook({ ...book, published_date: e.toDate() })
+                        }
+                        value={dayjs(
+                          new Date(book.published_date).toDateString()
+                        )}
+                      />
+                    </div>
+                  </ListItem>
+                  <ListItem>
+                    <div className="grid grid-cols-2 w-full">
+                      <label className="self-center"> Borrow Duration : </label>
+                      <input
+                        className="w-full py-2 px-2"
+                        type="number"
+                        value={book.avialable_borrow_day}
+                        onChange={(e) =>
+                          setBook({
+                            ...book,
+                            avialable_borrow_day: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </ListItem>
+                  <ListItem>
+                    <div className="grid grid-cols-2 w-full">
+                      <label className="self-center"> Book Image : </label>
+                      <input
+                        className="w-full py-2 px-2"
+                        type="file"
+                        name="book image"
+                        onChange={(e) => onFileChange(e)}
+                        accept="image/png, image/jpg, image/jpeg"
+                      />
+                    </div>
+                  </ListItem>
+                </List>
+              </Card>
+              <div className="flex justify-end mt-3">
+                <Button onClick={() => submitBook()} variant="contained">
+                  {" "}
+                  Add Book{" "}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default AddBook;
