@@ -41,7 +41,7 @@ function DashboardLayout() {
       }
       return setUser(decoded);
     }
-    return logout(user.user_role);
+    return window.location.replace("/auth");
   };
 
   useEffect(() => {

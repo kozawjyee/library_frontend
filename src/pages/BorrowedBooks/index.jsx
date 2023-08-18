@@ -56,7 +56,9 @@ function BorrowedBooks() {
       value["book_name"] = value.book_id.book_name;
       value["user_name"] = value.user_id.name;
       value["borrowed_date"] = new Date(value.date).toLocaleDateString();
-      value["ended_date"] = value.ended_date ? value.ended_date : "";
+      value["ended_date"] = value.ended_date
+        ? new Date(value.ended_date).toLocaleDateString()
+        : "";
       value["dead_line"] = new Date(value.dead_line).toLocaleDateString();
       value["is_ended"] = value.is_ended ? "ENDED" : "PENDING";
 

@@ -9,9 +9,14 @@ import {
   DialogTitle,
   Slide,
 } from "@mui/material";
+import Cookies from "universal-cookie";
+import jwtDecode from "jwt-decode";
 export const ErrorContext = createContext();
 
+const { VITE_ACS_TOKEN, VITE_REF_TOKEN } = import.meta.env;
+
 function ErrorProvider({ children }) {
+  const cookie = new Cookies();
   const [error, setError] = useState({
     isError: false,
     code: 0,
@@ -27,7 +32,18 @@ function ErrorProvider({ children }) {
         title: "",
         message: "",
       });
-      return window.location.reload();
+      const token = cookie.get(VITE_ACS_TOKEN, { path: "/" });
+      const decoded = jwtDecode(token);
+
+      if (decoded.user_role === "librarian") {
+        cookie.remove(VITE_ACS_TOKEN, { path: "/" });
+        cookie.remove(VITE_REF_TOKEN, { path: "/" });
+        window.location.replace("/auth/adminlogin");
+      } else {
+        cookie.remove(VITE_ACS_TOKEN, { path: "/" });
+        cookie.remove(VITE_REF_TOKEN, { path: "/" });
+        window.location.replace("/auth");
+      }
     }
     return setError({
       isError: false,

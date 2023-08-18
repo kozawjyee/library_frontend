@@ -23,6 +23,7 @@ function Profile() {
   const [isEdit, setIsEdit] = useState(false);
   const { showError } = useContext(ErrorContext);
   const [noti, setNoti] = useState({ show: false, message: "" });
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const loadUser = async () => {
@@ -41,21 +42,34 @@ function Profile() {
 
   const updateProfile = async () => {
     setloading(true);
-    console.log(profile);
-    const data = {
-      name: profile.name,
-      username: profile.user_name,
-      user_role: profile.user_role,
-      email: profile.email,
-      phone_no: profile.ph_no,
-      nrc: profile.nrc,
-      password: profile.password,
-      address: profile.address,
-    };
+    let data;
+    if (password !== "") {
+      data = {
+        name: profile.name,
+        username: profile.username,
+        user_role: profile.user_role,
+        email: profile.email,
+        phone_no: profile.phone_no,
+        nrc: profile.nrc,
+        address: profile.address,
+        password: password,
+      };
+    } else {
+      data = {
+        name: profile.name,
+        username: profile.username,
+        user_role: profile.user_role,
+        email: profile.email,
+        phone_no: profile.phone_no,
+        nrc: profile.nrc,
+        address: profile.address,
+      };
+    }
     await userUpdate(profile._id, profile, data)
       .then((resp) => {
         console.log(resp.data);
         setloading(false);
+        setIsEdit(false);
         setNoti({ show: true, message: "updated successfully" });
       })
       .catch((err) => {
@@ -248,10 +262,25 @@ function Profile() {
                     onChange={(e) => changeProfileValue("nrc", e.target.value)}
                   />
                 </div>
+
+                {/* <div className="grid grid-cols-2 mt-5">
+                  <label className="self-center">Password :</label>
+                  <input
+                    disabled={!isEdit}
+                    className="shadow-inner bg-[#ececec] px-3 py-2"
+                    type="text"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div> */}
               </div>
             </div>
             <div className="flex justify-end mt-5">
-              <Button onClick={() => updateProfile()} variant="contained">
+              <Button
+                disabled={!isEdit}
+                onClick={() => updateProfile()}
+                variant="contained"
+              >
                 Update
               </Button>
             </div>
